@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useGame } from "@/contexts/GameContext";
+import { useSound } from "@/contexts/SoundContext";
 
 export default function TenBuddies() {
   const [currentScreen, setCurrentScreen] = useState(0);
@@ -15,6 +16,8 @@ export default function TenBuddies() {
     totalChallenges,
     showToast,
   } = useGame();
+
+  const { playButtonClick, playCorrectAnswer, playWrongAnswer } = useSound();
 
   useEffect(() => {
     setTotalChallenges(screens.length);
@@ -34,6 +37,7 @@ export default function TenBuddies() {
   };
 
   const handleCorrectAnswer = () => {
+    playCorrectAnswer();
     incrementCorrectAnswers();
     incrementChallengesCompleted();
     showToast("Correct! That makes 10!", "success");
@@ -48,6 +52,7 @@ export default function TenBuddies() {
   };
 
   const handleWrongAnswer = () => {
+    playWrongAnswer();
     incrementWrongAnswers();
     showToast("Oops! That doesn't make 10. Try again!", "error");
   };

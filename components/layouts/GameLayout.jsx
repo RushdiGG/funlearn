@@ -1,7 +1,8 @@
 "use client";
-import { useEffect } from "react";
+
 import { Clock, Target, CheckCircle2, XCircle } from "lucide-react";
 import { useGame } from "@/contexts/GameContext";
+import { useSound } from "@/contexts/SoundContext";
 
 export default function GameLayout({ children }) {
   const {
@@ -13,23 +14,26 @@ export default function GameLayout({ children }) {
     challengesCompleted,
     totalChallenges,
     startGame,
+    resetGame,
     toast,
-    setToast,
   } = useGame();
 
-  useEffect(() => {
-    if (isGameEnded && toast) {
-      const timer = setTimeout(() => {
-        setToast(null);
-      }, toast.duration || 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isGameEnded, toast, setToast]);
+  const { playButtonClick } = useSound();
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  const handleStartGame = () => {
+    playButtonClick();
+    startGame();
+  };
+
+  const handleResetGame = () => {
+    playButtonClick();
+    resetGame();
   };
 
   const EndGameScreen = () => (
@@ -41,7 +45,7 @@ export default function GameLayout({ children }) {
         <p className="text-xl">Wrong Answers: {wrongAnswers}</p>
       </div>
       <button
-        onClick={() => window.location.reload()}
+        onClick={handleResetGame}
         className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
         Play Again
       </button>
@@ -56,7 +60,7 @@ export default function GameLayout({ children }) {
             <div className="flex-grow flex flex-col items-center justify-center">
               <h2 className="mb-4 text-2xl font-bold text-gray-700">Ready to Play?</h2>
               <button
-                onClick={startGame}
+                onClick={handleStartGame}
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
                 Start Game
               </button>
@@ -66,16 +70,16 @@ export default function GameLayout({ children }) {
           ) : (
             <div className="flex-grow overflow-auto">{children}</div>
           )}
-        </div>
 
-        {toast && (
-          <div
-            className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white ${
-              toast.type === "error" ? "bg-red-500" : "bg-green-500"
-            }`}>
-            {toast.message}
-          </div>
-        )}
+          {toast && (
+            <div
+              className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white ${
+                toast.type === "error" ? "bg-red-500" : "bg-green-500"
+              }`}>
+              {toast.message}
+            </div>
+          )}
+        </div>
       </div>
       {/* Game Stats Bar */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-100 rounded-md">

@@ -16,6 +16,50 @@ export const GameProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const [toastTimer, setToastTimer] = useState(null);
 
+  // Load state from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedState = localStorage.getItem("gameState");
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+        setTimeElapsed(parsedState.timeElapsed || 0);
+        setIsGameStarted(parsedState.isGameStarted || false);
+        setIsGameEnded(parsedState.isGameEnded || false);
+        setCorrectAnswers(parsedState.correctAnswers || 0);
+        setWrongAnswers(parsedState.wrongAnswers || 0);
+        setChallengesCompleted(parsedState.challengesCompleted || 0);
+        setTotalChallenges(parsedState.totalChallenges || 0);
+        setGameName(parsedState.gameName || "");
+      }
+    }
+  }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stateToSave = {
+        timeElapsed,
+        isGameStarted,
+        isGameEnded,
+        correctAnswers,
+        wrongAnswers,
+        challengesCompleted,
+        totalChallenges,
+        gameName,
+      };
+      localStorage.setItem("gameState", JSON.stringify(stateToSave));
+    }
+  }, [
+    timeElapsed,
+    isGameStarted,
+    isGameEnded,
+    correctAnswers,
+    wrongAnswers,
+    challengesCompleted,
+    totalChallenges,
+    gameName,
+  ]);
+
   useEffect(() => {
     let timer;
     if (isGameStarted && !isGameEnded) {
@@ -26,22 +70,38 @@ export const GameProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [isGameStarted, isGameEnded]);
 
-  const startGame = () => setIsGameStarted(true);
-  const endGame = () => setIsGameEnded(true);
-  const incrementCorrectAnswers = () => setCorrectAnswers((prev) => prev + 1);
-  const incrementWrongAnswers = () => setWrongAnswers((prev) => prev + 1);
-  const incrementChallengesCompleted = () => setChallengesCompleted((prev) => prev + 1);
+  const startGame = useCallback(() => setIsGameStarted(true), []);
+  const endGame = useCallback(() => setIsGameEnded(true), []);
+  const incrementCorrectAnswers = useCallback(() => setCorrectAnswers((prev) => prev + 1), []);
+  const incrementWrongAnswers = useCallback(() => setWrongAnswers((prev) => prev + 1), []);
+  const incrementChallengesCompleted = useCallback(() => setChallengesCompleted((prev) => prev + 1), []);
 
-  const showToast = useCallback((message, type = "info") => {
-    if (toastTimer) {
-      clearTimeout(toastTimer);
+  const resetGame = useCallback(() => {
+    setTimeElapsed(0);
+    setIsGameStarted(false);
+    setIsGameEnded(false);
+    setCorrectAnswers(0);
+    setWrongAnswers(0);
+    setChallengesCompleted(0);
+    // Clear localStorage when resetting the game
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("gameState");
     }
-    setToast({ message, type });
-    const newTimer = setTimeout(() => {
-      setToast(null);
-    }, 3000);
-    setToastTimer(newTimer);
   }, []);
+
+  const showToast = useCallback(
+    (message, type = "info") => {
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+      }
+      setToast({ message, type });
+      const newTimer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      setToastTimer(newTimer);
+    },
+    [toastTimer]
+  );
 
   useEffect(() => {
     return () => {
@@ -65,6 +125,7 @@ export const GameProvider = ({ children }) => {
         toast,
         startGame,
         endGame,
+        resetGame,
         incrementCorrectAnswers,
         incrementWrongAnswers,
         incrementChallengesCompleted,

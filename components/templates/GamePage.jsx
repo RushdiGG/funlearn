@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { GameProvider } from "@/contexts/GameContext";
+import { SoundProvider } from "@/contexts/SoundContext";
 import GameLayout from "@/components/layouts/GameLayout";
 import { ChevronDown } from "lucide-react";
 
@@ -26,12 +27,13 @@ export default function PageTemplate({ gameName, gameDescription, learningPoints
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-4 text-center text-3xl font-bold text-primary">{gameName}</h1>
+        <p className="mb-6 text-center text-lg text-gray-600">{gameDescription}</p>
 
-        <GameProvider>
-          <GameLayout>{children}</GameLayout>
-        </GameProvider>
-
-        <p className="my-6 text-center text-lg text-gray-600">{gameDescription}</p>
+        <SoundProvider>
+          <GameProvider>
+            <GameLayout>{children}</GameLayout>
+          </GameProvider>
+        </SoundProvider>
 
         <Accordion title="What you will learn">
           <ul className="list-disc pl-5">
